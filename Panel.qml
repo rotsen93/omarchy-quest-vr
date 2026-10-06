@@ -79,6 +79,7 @@ Panel {
           anchors.centerIn: parent
           iconSize: Style.bar.iconCanvas
           color: root.statusColor
+          active: root.streaming
         }
       }
     }
