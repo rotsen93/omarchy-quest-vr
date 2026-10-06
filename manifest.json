@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "makiaveloh.quest-vr",
+  "id": "quest-vr-link",
   "name": "Quest VR Link",
   "version": "1.0.0",
-  "author": "Nestor (Makiaveloh)",
+  "author": "Nestor",
   "license": "MIT",
   "description": "Integration and control for Meta Quest 3 on Omarchy: wired USB reverse tethering, Ultrawide 32:9 virtual monitor, auto-launching, and spatial floating HUD.",
   "kinds": [

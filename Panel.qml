@@ -6,8 +6,8 @@ import qs.Ui
 
 Panel {
   id: root
-  moduleName: "makiaveloh.quest-vr"
-  ipcTarget: "makiaveloh.quest-vr"
+  moduleName: "quest-vr-link"
+  ipcTarget: "quest-vr-link"
 
   property string connectionMode: "auto"
   property string transport: "none"

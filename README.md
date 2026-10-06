@@ -1,4 +1,4 @@
-# Quest VR Link for Omarchy (`makiaveloh.quest-vr`)
+# Quest VR Link for Omarchy (`quest-vr-link`)
 
 Una suite completa y modular para integrar el **Meta Quest 3** con **Omarchy Linux / Hyprland**:
 streaming de ultra baja latencia por cable USB (reverse tethering), monitor virtual **Ultrawide 32:9 (3840x1080@90Hz)**, auto-lanzador inteligente y un **Spatial HUD flotante** para realidad mixta (Passthrough).
@@ -76,13 +76,13 @@ cd omarchy-quest-vr
 ```
 
 ### 3. Registrar el widget en tu barra
-Edita `~/.config/omarchy/shell.json` y añade `"makiaveloh.quest-vr"` en la sección `right` de tu barra:
+Edita `~/.config/omarchy/shell.json` y añade `"quest-vr-link"` en la sección `right` de tu barra:
 ```json
 {
   "bar": {
     "layout": {
       "right": [
-        { "id": "makiaveloh.quest-vr" }
+        { "id": "quest-vr-link" }
       ]
     }
   }
@@ -130,6 +130,15 @@ Para retirar el plugin y todos sus servicios sin dejar residuos:
 ```bash
 ./uninstall.sh
 ```
+---
+
+## Créditos y Autoría
+
+- **Autor**: Nestor (`@rotsen93`)
+- Construido con y para la comunidad de [Omarchy Linux](https://omarchy.org).
+
+---
+
 ## Licencia
 
 Distribuido bajo la licencia [MIT](LICENSE).

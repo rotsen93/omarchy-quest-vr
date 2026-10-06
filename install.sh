@@ -50,5 +50,5 @@ fi
 echo "=========================================="
 echo "  Instalación completada exitosamente!"
 echo "  Agrega el widget en ~/.config/omarchy/shell.json:"
-echo "    {\"id\": \"makiaveloh.quest-vr\"}"
+echo "    {\"id\": \"quest-vr-link\"}"
 echo "=========================================="
