@@ -1,7 +1,7 @@
 # Quest VR Link for Omarchy (`quest-vr-link`)
 
 Una suite completa y modular para integrar el **Meta Quest 3** con **Omarchy Linux / Hyprland**:
-streaming de ultra baja latencia por cable USB (reverse tethering), monitor virtual **Ultrawide 32:9 (3840x1080@90Hz)**, auto-lanzador inteligente y un **Spatial HUD flotante** para realidad mixta (Passthrough).
+streaming de ultra baja latencia de doble vía (**Cable USB con reverse tethering** o **Wi-Fi LAN inalámbrico**), monitor virtual **Ultrawide 32:9 (3840x1080@90Hz)**, auto-lanzador inteligente y un **Spatial HUD flotante** para realidad mixta (Passthrough).
 
 ---
 

@@ -70,10 +70,18 @@ Panel {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: root.icon
     active: root.streaming
     useActiveColor: true
     activeColor: Color.accent
+    iconComponent: Component {
+      Item {
+        QuestIcon {
+          anchors.centerIn: parent
+          iconSize: Style.bar.iconCanvas
+          color: root.statusColor
+        }
+      }
+    }
     tooltipText: root.streaming ? "Quest 3: Transmitiendo (" + root.batteryLevel + "% · " + root.transport + ")" : (root.transport !== "none" ? "Quest 3 conectado (" + root.batteryLevel + "% · " + root.transport + ")" : "Quest 3 desconectado")
     onPressed: function(b) {
       if (b === Qt.RightButton) {
@@ -112,9 +120,8 @@ Panel {
           spacing: Style.space(12)
           width: parent.width
 
-          Text {
-            text: root.icon
-            font.pixelSize: Style.font.display
+          QuestIcon {
+            iconSize: Style.font.display
             color: root.statusColor
             anchors.verticalCenter: parent.verticalCenter
           }

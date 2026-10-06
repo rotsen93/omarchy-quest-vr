@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "Nestor",
   "license": "MIT",
-  "description": "Integration and control for Meta Quest 3 on Omarchy: wired USB reverse tethering, Ultrawide 32:9 virtual monitor, auto-launching, and spatial floating HUD.",
+  "description": "Integration and control for Meta Quest 3 on Omarchy: dual-mode USB cable reverse tethering & wireless Wi-Fi streaming, Ultrawide 32:9 virtual monitor, auto-launching, and spatial floating HUD.",
   "kinds": [
     "bar-widget"
   ],
@@ -14,7 +14,7 @@
   },
   "barWidget": {
     "displayName": "Quest VR Link",
-    "description": "Control VR streaming, toggle 32:9 Ultrawide display, monitor headset telemetry and USB link status.",
+    "description": "Control VR streaming over Cable or Wi-Fi, toggle 32:9 Ultrawide display, monitor headset telemetry and active link status.",
     "category": "Hardware",
     "aliases": [
       "quest",
