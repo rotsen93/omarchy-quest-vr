@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / logs
+*.log
+*.zip
+*.apk
+
+# Local developer overrides
+.DS_Store
+*.swp
+*.bak

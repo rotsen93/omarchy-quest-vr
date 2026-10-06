@@ -1,0 +1,11 @@
+[Unit]
+Description=Web Terminal for Quest Spatial HUD
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/ttyd -W -O -p 7681 -i 0.0.0.0 -I %h/.local/share/vr-hud/custom_ttyd.html -t fontSize=14 -t theme='{"background":"#131620","foreground":"#c0caf5","cursor":"#7aa2f7"}' /bin/bash
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,45 @@
+#!/bin/bash
+set -euo pipefail
+
+case "${1:-toggle}" in
+  toggle)
+    if hyprctl monitors | grep -q "HEADLESS-1"; then
+      "$0" off
+    else
+      "$0" on
+    fi
+    ;;
+  on|ultrawide)
+    # 1. Create headless ultrawide monitor (3840x1080@90)
+    if ! hyprctl monitors | grep -q "HEADLESS-1"; then
+      hyprctl output create headless HEADLESS-1
+      sleep 0.2
+      hyprctl eval 'hl.monitor({ output = "HEADLESS-1", mode = "3840x1080@90", position = "0x0", scale = 1 })'
+      sleep 0.2
+    fi
+    # 2. Disable physical laptop display
+    hyprctl eval 'hl.monitor({ output = "eDP-1", disabled = true })'
+    # 3. Restart Sunshine to latch onto HEADLESS-1
+    systemctl --user restart app-dev.lizardbyte.app.Sunshine.service
+    ;;
+  off|normal)
+    # 1. Re-enable physical laptop display
+    hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto", scale = 1, disabled = false })'
+    sleep 0.2
+    # 2. Remove headless monitor
+    if hyprctl monitors | grep -q "HEADLESS-1"; then
+      hyprctl output remove HEADLESS-1 || true
+    fi
+    # 3. Ensure backlight is visible
+    brightnessctl -d intel_backlight set 50% || true
+    # 4. Restart Sunshine to latch back onto eDP-1
+    systemctl --user restart app-dev.lizardbyte.app.Sunshine.service
+    ;;
+  status)
+    hyprctl monitors
+    ;;
+  *)
+    echo "Usage: $0 {toggle|on|off|status}"
+    exit 1
+    ;;
+esac

@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2833", RUN+="/usr/bin/systemctl --no-block --user -M makiaveloh@ start quest-autolaunch.service"

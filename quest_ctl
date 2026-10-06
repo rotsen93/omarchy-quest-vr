@@ -1,0 +1,64 @@
+#!/bin/bash
+set -euo pipefail
+
+action="${1:-status}"
+
+# Helper to find user home robustly
+BIN_DIR="${HOME}/.local/bin"
+
+case "$action" in
+  status)
+    quest_connected="false"
+    if adb devices -l 2>/dev/null | grep -qE "model:Quest|product:eureka"; then
+      quest_connected="true"
+    fi
+
+    streaming="false"
+    if ss -tunp 2>/dev/null | grep -qE "47998|47999|48000"; then
+      streaming="true"
+    fi
+
+    ultrawide="false"
+    if hyprctl monitors 2>/dev/null | grep -q "HEADLESS-1"; then
+      ultrawide="true"
+    fi
+
+    gnirehtet_active="false"
+    if systemctl --user is-active gnirehtet.service >/dev/null 2>&1; then
+      gnirehtet_active="true"
+    fi
+
+    battery_level="--"
+    if [[ "$quest_connected" == "true" ]]; then
+      bat=$(adb shell "dumpsys battery | grep level" 2>/dev/null | awk '{print $2}' || true)
+      if [[ -n "$bat" ]]; then
+        battery_level="$bat"
+      fi
+    fi
+
+    echo "{\"quest_connected\":$quest_connected,\"streaming\":$streaming,\"ultrawide\":$ultrawide,\"gnirehtet\":$gnirehtet_active,\"battery\":\"$battery_level\"}"
+    ;;
+
+  toggle_ultrawide)
+    if [[ -x "${BIN_DIR}/vr-screen" ]]; then
+      "${BIN_DIR}/vr-screen" toggle >/dev/null 2>&1 || true
+    fi
+    ;;
+
+  launch_moonlight)
+    adb shell am start -n com.gilleece.moonlightxr/com.limelight.PcView >/dev/null 2>&1 || true
+    ;;
+
+  launch_hud)
+    adb shell am start -a android.intent.action.VIEW -d "http://10.0.2.2:9090" >/dev/null 2>&1 || true
+    ;;
+
+  restart_sunshine)
+    systemctl --user restart app-dev.lizardbyte.app.Sunshine.service >/dev/null 2>&1 || true
+    ;;
+
+  *)
+    echo "Usage: $0 {status|toggle_ultrawide|launch_moonlight|launch_hud|restart_sunshine}"
+    exit 1
+    ;;
+esac

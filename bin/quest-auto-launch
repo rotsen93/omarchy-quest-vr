@@ -1,0 +1,28 @@
+#!/bin/bash
+set -euo pipefail
+
+QUEST_SERIAL=""
+for i in $(seq 1 15); do
+  QUEST_SERIAL=$(adb devices -l 2>/dev/null | grep -E "model:Quest|product:eureka" | awk '{print $1}' | head -n 1 || true)
+  if [[ -n "$QUEST_SERIAL" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ -z "$QUEST_SERIAL" ]]; then
+  echo "No Quest 3 device detected by ADB."
+  exit 0
+fi
+
+# Give gnirehtet USB tunnel a brief moment to stabilize
+sleep 2
+
+# 1. Launch Spatial HUD in Quest Browser
+echo "Opening Spatial HUD in Quest Browser..."
+adb -s "$QUEST_SERIAL" shell am start -a android.intent.action.VIEW -d "http://10.0.2.2:9090" >/dev/null 2>&1 || true
+
+# 2. Launch Moonlight XR on Quest 3
+echo "Launching Moonlight XR on Quest ($QUEST_SERIAL)..."
+sleep 1
+adb -s "$QUEST_SERIAL" shell am start -n com.gilleece.moonlightxr/com.limelight.PcView >/dev/null 2>&1 || true

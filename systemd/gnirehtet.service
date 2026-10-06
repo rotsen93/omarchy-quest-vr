@@ -1,0 +1,13 @@
+[Unit]
+Description=Gnirehtet Reverse Tethering for Meta Quest / Android
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/gnirehtet
+ExecStart=%h/.local/bin/gnirehtet autorun
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

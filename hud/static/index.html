@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omarchy Spatial Workspace</title>
+  <style>
+    :root {
+      --bg: rgba(14, 16, 22, 0.85);
+      --card: rgba(22, 26, 36, 0.75);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #7aa2f7;
+      --accent-alt: #bb9af7;
+      --green: #9ece6a;
+      --orange: #ff9e64;
+      --red: #f7768e;
+      --text: #c0caf5;
+      --muted: #7982a9;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: transparent;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      user-select: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Top Nav / Tabs */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.4s ease, background 0.3s ease;
+    }
+
+    /* Terminal Tab & Toolbar */
+    .terminal-container {
+      width: 100%;
+      height: 420px;
+      background: rgba(10, 12, 16, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .term-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 10px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 44px;
+      text-align: center;
+      transition: all 0.1s ease;
+      touch-action: manipulation;
+    }
+
+    .key-btn:active {
+      transform: scale(0.92);
+      background: var(--accent);
+      color: #000;
+    }
+
+    .key-btn.active-mod {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .key-btn.key-nav {
+      background: rgba(122, 162, 247, 0.15);
+      color: var(--accent);
+    }
+
+    /* Pomodoro Tab */
+    .pomo-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 20px;
+      gap: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+    }
+
+    .pomo-time {
+      font-size: 4.5rem;
+      font-weight: 900;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+    }
+
+    .pomo-mode {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .pomo-controls {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    /* Notifications Feed Tab */
+    .notifs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .notif-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      backdrop-filter: blur(16px);
+    }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .notif-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .notif-body {
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .empty-notifs {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('hud')">Métricas</button>
+        <button class="tab-btn" onclick="switchTab('terminal')">Terminal</button>
+        <button class="tab-btn" onclick="switchTab('pomo')">Pomodoro</button>
+        <button class="tab-btn" onclick="switchTab('notifs')">Notificaciones</button>
+      </div>
+      <div style="font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums;" id="top-clock">--:--</div>
+    </header>
+
+    <!-- 1. TAB: HUD / METRICAS -->
+    <div id="tab-hud" class="tab-content active">
+      <div class="grid">
+        <div class="card">
+          <div class="card-title"><span>CPU (i7-1165G7)</span><span id="cpu-temp">--°C</span></div>
+          <div class="val" id="cpu-val">0%</div>
+          <div class="bar-bg"><div class="bar-fill" id="cpu-bar"></div></div>
+          <div class="sub" id="cpu-freq">Freq: -- MHz</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Memoria RAM</span><span>24 GB</span></div>
+          <div class="val" id="ram-val">0%</div>
+          <div class="bar-bg"><div class="bar-fill" id="ram-bar"></div></div>
+          <div class="sub" id="ram-used">0.0 / 0.0 GB</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Batería PC</span><span id="bat-state">--</span></div>
+          <div class="val" id="bat-val">--%</div>
+          <div class="bar-bg"><div class="bar-fill" id="bat-bar"></div></div>
+          <div class="sub" id="bat-power">-- W</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Enlace Cable</span><span>10.0.2.2</span></div>
+          <div class="val" style="color: var(--green);">Activo</div>
+          <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: var(--green);"></div></div>
+          <div class="sub">USB Tethering</div>
+        </div>
+
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-title"><span>Scratchpad Espacial</span><span>Guardado auto</span></div>
+          <textarea id="notes" style="width: 100%; height: 80px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; resize: none; outline: none;" placeholder="Notas rápidas en el visor..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. TAB: TERMINAL CON TECLADO VIRTUAL DE ACCIONES -->
+    <div id="tab-terminal" class="tab-content">
+      <div class="terminal-container">
+        <iframe id="term-frame" src="about:blank"></iframe>
+      </div>
+      <div class="term-toolbar">
+        <!-- Fila 1: Modificadores y Atajos rápidos -->
+        <div class="key-row">
+          <button class="key-btn" id="mod-ctrl" onclick="toggleModifier('ctrl')">Ctrl</button>
+          <button class="key-btn" id="mod-alt" onclick="toggleModifier('alt')">Alt</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b')">Esc</button>
+          <button class="key-btn" onclick="sendTerminalKey('\t')">Tab</button>
+          <button class="key-btn key-nav" onclick="sendTerminalKey('\x03')">^C</button>
+          <button class="key-btn key-nav" onclick="sendTerminalKey('\x04')">^D</button>
+          <button class="key-btn key-nav" onclick="sendTerminalKey('\x1a')">^Z</button>
+          <button class="key-btn key-nav" onclick="sendTerminalKey('\x0c')">^L</button>
+        </div>
+        <!-- Fila 2: Flechas y Edición -->
+        <div class="key-row">
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[A')">▲</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[B')">▼</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[D')">◀</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[C')">▶</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[H')">Home</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[F')">End</button>
+          <button class="key-btn" onclick="sendTerminalKey('\x1b[3~')">Del</button>
+          <button class="key-btn" style="background: var(--accent); color: #000;" onclick="sendTerminalKey('\r')">Enter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TAB: POMODORO -->
+    <div id="tab-pomo" class="tab-content">
+      <div class="pomo-card">
+        <div class="pomo-mode" id="pomo-mode">Modo Enfoque</div>
+        <div class="pomo-time" id="pomo-time">25:00</div>
+        <div class="pomo-controls">
+          <button class="btn btn-primary" id="pomo-btn" onclick="togglePomodoro()">Iniciar</button>
+          <button class="btn btn-secondary" onclick="resetPomodoro()">Reiniciar</button>
+          <button class="btn btn-secondary" onclick="switchPomoMode()">Descanso</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TAB: NOTIFICACIONES -->
+    <div id="tab-notifs" class="tab-content">
+      <div class="notifs-list" id="notifs-list">
+        <div class="empty-notifs">No hay notificaciones recientes</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`tab-${name}`).classList.add('active');
+
+      if (name === 'terminal') {
+        const frame = document.getElementById('term-frame');
+        if (frame.src === 'about:blank' || !frame.src) {
+          frame.src = `${window.location.protocol}//${window.location.hostname}:7681/`;
+        }
+      }
+    }
+
+    // Modifier Keys State
+    let ctrlActive = false;
+    let altActive = false;
+
+    function toggleModifier(mod) {
+      if (mod === 'ctrl') {
+        ctrlActive = !ctrlActive;
+        document.getElementById('mod-ctrl').classList.toggle('active-mod', ctrlActive);
+      } else if (mod === 'alt') {
+        altActive = !altActive;
+        document.getElementById('mod-alt').classList.toggle('active-mod', altActive);
+      }
+    }
+
+    function sendTerminalKey(seq) {
+      const frame = document.getElementById('term-frame');
+      if (!frame || !frame.contentWindow) return;
+
+      let payload = seq;
+      // Handle active modifiers if pressing basic letters/keys
+      if (ctrlActive && seq.length === 1) {
+        const code = seq.toUpperCase().charCodeAt(0);
+        if (code >= 64 && code <= 95) {
+          payload = String.fromCharCode(code - 64);
+        }
+        toggleModifier('ctrl');
+      } else if (altActive) {
+        payload = '\x1b' + seq;
+        toggleModifier('alt');
+      }
+
+      frame.contentWindow.postMessage({ type: 'input', data: payload }, '*');
+    }
+
+    // Top Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('top-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Notes
+    const notes = document.getElementById('notes');
+    notes.value = localStorage.getItem('spatial_notes') || '';
+    notes.addEventListener('input', () => localStorage.setItem('spatial_notes', notes.value));
+
+    // Metrics
+    function setBarColor(bar, percent) {
+      if (percent > 85) bar.style.background = 'var(--red)';
+      else if (percent > 65) bar.style.background = 'var(--orange)';
+      else bar.style.background = 'var(--accent)';
+    }
+
+    async function fetchMetrics() {
+      try {
+        const res = await fetch('/api/metrics');
+        if (!res.ok) return;
+        const d = await res.json();
+        document.getElementById('cpu-val').textContent = `${d.cpu_percent}%`;
+        const cpuBar = document.getElementById('cpu-bar');
+        cpuBar.style.width = `${d.cpu_percent}%`;
+        setBarColor(cpuBar, d.cpu_percent);
+        document.getElementById('cpu-temp').textContent = `${d.cpu_temp}°C`;
+        document.getElementById('cpu-freq').textContent = `Freq: ${d.cpu_freq} MHz`;
+
+        document.getElementById('ram-val').textContent = `${d.ram_percent}%`;
+        const ramBar = document.getElementById('ram-bar');
+        ramBar.style.width = `${d.ram_percent}%`;
+        setBarColor(ramBar, d.ram_percent);
+        document.getElementById('ram-used').textContent = `${d.ram_used_gb} / ${d.ram_total_gb} GB`;
+
+        document.getElementById('bat-val').textContent = `${d.battery_percent}%`;
+        const batBar = document.getElementById('bat-bar');
+        batBar.style.width = `${d.battery_percent}%`;
+        batBar.style.background = d.battery_percent < 20 ? 'var(--red)' : 'var(--green)';
+        document.getElementById('bat-state').textContent = d.battery_charging ? 'Cargando' : 'Batería';
+        document.getElementById('bat-power').textContent = `${d.battery_power_w} W`;
+      } catch (e) {}
+    }
+    setInterval(fetchMetrics, 2000);
+    fetchMetrics();
+
+    // Notifications
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/notifications');
+        if (!res.ok) return;
+        const list = await res.json();
+        const container = document.getElementById('notifs-list');
+        if (!list || list.length === 0) {
+          container.innerHTML = '<div class="empty-notifs">No hay notificaciones recientes</div>';
+          return;
+        }
+        container.innerHTML = list.map(n => `
+          <div class="notif-item">
+            <div class="notif-header">
+              <span>${n.app}</span>
+              <span>${n.time}</span>
+            </div>
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-body">${n.body}</div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+    setInterval(fetchNotifications, 3000);
+    fetchNotifications();
+
+    // Pomodoro Timer Logic
+    let pomoSeconds = 25 * 60;
+    let pomoRunning = false;
+    let pomoInterval = null;
+    let isBreak = false;
+
+    function renderPomodoro() {
+      const m = Math.floor(pomoSeconds / 60).toString().padStart(2, '0');
+      const s = (pomoSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('pomo-time').textContent = `${m}:${s}`;
+    }
+
+    function togglePomodoro() {
+      const btn = document.getElementById('pomo-btn');
+      if (pomoRunning) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        btn.textContent = 'Reanudar';
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+      } else {
+        pomoRunning = true;
+        btn.textContent = 'Pausar';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-secondary');
+        pomoInterval = setInterval(() => {
+          if (pomoSeconds > 0) {
+            pomoSeconds--;
+            renderPomodoro();
+          } else {
+            clearInterval(pomoInterval);
+            pomoRunning = false;
+            alert(isBreak ? '¡Descanso terminado! Volvamos al enfoque.' : '¡Tiempo de enfoque cumplido! Toma un descanso.');
+            resetPomodoro();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetPomodoro() {
+      clearInterval(pomoInterval);
+      pomoRunning = false;
+      pomoSeconds = isBreak ? 5 * 60 : 25 * 60;
+      const btn = document.getElementById('pomo-btn');
+      btn.textContent = 'Iniciar';
+      btn.classList.remove('btn-secondary');
+      btn.classList.add('btn-primary');
+      renderPomodoro();
+    }
+
+    function switchPomoMode() {
+      isBreak = !isBreak;
+      document.getElementById('pomo-mode').textContent = isBreak ? 'Descanso Corto' : 'Modo Enfoque';
+      document.getElementById('pomo-mode').style.color = isBreak ? 'var(--green)' : 'var(--accent)';
+      resetPomodoro();
+    }
+    renderPomodoro();
+  </script>
+</body>
+</html>
