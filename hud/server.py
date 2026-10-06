@@ -11,7 +11,7 @@ import time
 PORT = 9090
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
-# Notification in-memory buffer
+# Notification buffer
 notifications = []
 MAX_NOTIFS = 30
 
@@ -29,7 +29,6 @@ def monitor_notifications():
                 val = s[8:-1]
                 lines.append(val)
                 if len(lines) == 5:
-                    # lines: [app_name, icon, summary/title, body, ...]
                     app = lines[0] or "Sistema"
                     title = lines[2] or ""
                     body = lines[3] or ""
@@ -49,26 +48,76 @@ def monitor_notifications():
 t = threading.Thread(target=monitor_notifications, daemon=True)
 t.start()
 
+# Network rate tracking state
+last_net_time = time.time()
+last_net_bytes_recv = 0
+last_net_bytes_sent = 0
+last_rx_rate = 0.0
+last_tx_rate = 0.0
+
+try:
+    net_init = psutil.net_io_counters()
+    last_net_bytes_recv = net_init.bytes_recv
+    last_net_bytes_sent = net_init.bytes_sent
+except Exception:
+    pass
+
 def get_metrics():
+    global last_net_time, last_net_bytes_recv, last_net_bytes_sent, last_rx_rate, last_tx_rate
+
+    now = time.time()
+    dt = max(0.1, now - last_net_time)
+    try:
+        net_now = psutil.net_io_counters()
+        rx_diff = max(0, net_now.bytes_recv - last_net_bytes_recv)
+        tx_diff = max(0, net_now.bytes_sent - last_net_bytes_sent)
+        last_rx_rate = round(rx_diff / dt / 1024, 1) # KB/s
+        last_tx_rate = round(tx_diff / dt / 1024, 1) # KB/s
+        last_net_bytes_recv = net_now.bytes_recv
+        last_net_bytes_sent = net_now.bytes_sent
+        last_net_time = now
+    except Exception:
+        pass
+
+    # CPU
     cpu_percent = psutil.cpu_percent(interval=None)
     freq = psutil.cpu_freq()
     cpu_freq = round(freq.current) if freq else 0
 
     cpu_temp = "--"
+    gpu_temp = "--"
     try:
         temps = psutil.sensors_temperatures()
         if "coretemp" in temps and len(temps["coretemp"]) > 0:
             cpu_temp = round(temps["coretemp"][0].current)
-        elif "k10temp" in temps and len(temps["k10temp"]) > 0:
-            cpu_temp = round(temps["k10temp"][0].current)
+            # On Intel Iris Xe (integrated on Tiger Lake), GPU die temp shares package temperature
+            gpu_temp = round(temps["coretemp"][0].current)
+        elif "thinkpad" in temps and len(temps["thinkpad"]) > 0:
+            cpu_temp = round(temps["thinkpad"][0].current)
+            gpu_temp = round(temps["thinkpad"][0].current)
     except Exception:
         pass
 
+    # Intel Iris Xe GPU metrics via sysfs
+    gpu_freq_mhz = 0
+    gpu_max_freq = 1300
+    try:
+        with open("/sys/devices/pci0000:00/0000:00:02.0/drm/card1/gt_act_freq_mhz", "r") as f:
+            gpu_freq_mhz = int(f.read().strip())
+        with open("/sys/devices/pci0000:00/0000:00:02.0/drm/card1/gt_max_freq_mhz", "r") as f_max:
+            gpu_max_freq = int(f_max.read().strip())
+    except Exception:
+        pass
+
+    gpu_percent = round((gpu_freq_mhz / gpu_max_freq) * 100) if gpu_max_freq > 0 else 0
+
+    # RAM
     ram = psutil.virtual_memory()
     ram_percent = ram.percent
     ram_used_gb = round(ram.used / (1024**3), 1)
     ram_total_gb = round(ram.total / (1024**3), 1)
 
+    # Battery
     battery = psutil.sensors_battery()
     bat_percent = round(battery.percent) if battery else "--"
     bat_charging = battery.power_plugged if battery else False
@@ -92,6 +141,11 @@ def get_metrics():
         "cpu_percent": cpu_percent,
         "cpu_freq": cpu_freq,
         "cpu_temp": cpu_temp,
+        "gpu_percent": gpu_percent,
+        "gpu_freq": gpu_freq_mhz,
+        "gpu_temp": gpu_temp,
+        "net_rx_kb": last_rx_rate,
+        "net_tx_kb": last_tx_rate,
         "ram_percent": ram_percent,
         "ram_used_gb": ram_used_gb,
         "ram_total_gb": ram_total_gb,

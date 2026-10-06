@@ -35,9 +35,14 @@ if [[ "$MODE" == "wifi" ]]; then
   LOCAL_IP=$(ip -4 addr show wlp9s0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1 || echo "10.0.2.2")
   HUD_IP="${LOCAL_IP}"
 else
-  # Ensure gnirehtet USB tunnel is up and stabilized
-  systemctl --user start gnirehtet.service 2>/dev/null || true
+  # Start spatial HUD, ttyd and gnirehtet on demand
+  systemctl --user start spatial-hud.service vr-ttyd.service gnirehtet.service 2>/dev/null || true
   sleep 2
+fi
+
+# Ensure spatial HUD and ttyd are up in wifi mode too
+if [[ "$MODE" == "wifi" ]]; then
+  systemctl --user start spatial-hud.service vr-ttyd.service 2>/dev/null || true
 fi
 
 # 1. Launch Spatial HUD in Quest Browser

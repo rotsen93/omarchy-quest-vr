@@ -1,0 +1,6 @@
+[Unit]
+Description=Clean up and stop VR services on Quest 3 disconnect
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/quest-cleanup

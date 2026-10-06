@@ -1,0 +1,14 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "Quest 3 desconectado: deteniendo servicios VR en segundo plano para ahorrar recursos..."
+
+# 1. Stop background VR user services
+systemctl --user stop gnirehtet.service spatial-hud.service vr-ttyd.service 2>/dev/null || true
+
+# 2. If ultrawide headless monitor was active, restore normal laptop screen
+if hyprctl monitors 2>/dev/null | grep -q "HEADLESS-1"; then
+  "${HOME}/.local/bin/vr-screen" off >/dev/null 2>&1 || true
+fi
+
+echo "Servicios VR detenidos limpiamente."

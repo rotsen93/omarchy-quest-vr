@@ -357,11 +357,20 @@
           <div class="sub" id="bat-power">-- W</div>
         </div>
 
+        <!-- GPU (Iris Xe) -->
         <div class="card">
-          <div class="card-title"><span>Enlace Cable</span><span>10.0.2.2</span></div>
-          <div class="val" style="color: var(--green);">Activo</div>
-          <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: var(--green);"></div></div>
-          <div class="sub">USB Tethering</div>
+          <div class="card-title"><span>GPU (Iris Xe)</span><span id="gpu-temp">--°C</span></div>
+          <div class="val" id="gpu-val">0%</div>
+          <div class="bar-bg"><div class="bar-fill" id="gpu-bar"></div></div>
+          <div class="sub" id="gpu-freq">Freq: -- MHz</div>
+        </div>
+
+        <!-- Red / Ancho de banda -->
+        <div class="card">
+          <div class="card-title"><span>Red / Tráfico</span><span>I/O</span></div>
+          <div class="val" style="font-size: 1.3rem;" id="net-rx">↓ 0.0 KB/s</div>
+          <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: var(--accent);"></div></div>
+          <div class="sub" id="net-tx">↑ 0.0 KB/s</div>
         </div>
 
         <div class="card" style="grid-column: span 2;">
@@ -517,6 +526,18 @@
         batBar.style.background = d.battery_percent < 20 ? 'var(--red)' : 'var(--green)';
         document.getElementById('bat-state').textContent = d.battery_charging ? 'Cargando' : 'Batería';
         document.getElementById('bat-power').textContent = `${d.battery_power_w} W`;
+
+        // GPU
+        document.getElementById('gpu-val').textContent = `${d.gpu_percent}%`;
+        const gpuBar = document.getElementById('gpu-bar');
+        gpuBar.style.width = `${d.gpu_percent}%`;
+        setBarColor(gpuBar, d.gpu_percent);
+        document.getElementById('gpu-temp').textContent = `${d.gpu_temp}°C`;
+        document.getElementById('gpu-freq').textContent = `Freq: ${d.gpu_freq} MHz`;
+
+        // Red
+        document.getElementById('net-rx').textContent = `↓ ${d.net_rx_kb} KB/s`;
+        document.getElementById('net-tx').textContent = `↑ ${d.net_tx_kb} KB/s`;
       } catch (e) {}
     }
     setInterval(fetchMetrics, 2000);
