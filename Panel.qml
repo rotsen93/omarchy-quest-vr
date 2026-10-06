@@ -35,10 +35,13 @@ Panel {
   Process {
     id: statusProc
     command: [Qt.resolvedUrl("quest_ctl").toString().replace(/^file:\/\//, ""), "status"]
-    stdout: SplitParser {
-      onRead: function(line) {
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
         try {
-          var data = JSON.parse(line.trim())
+          var raw = String(text || "").trim()
+          if (!raw) return
+          var data = JSON.parse(raw)
           root.connectionMode = data.mode
           root.transport = data.transport
           root.questUsb = data.quest_usb
@@ -51,7 +54,6 @@ Panel {
       }
     }
   }
-
   Process {
     id: actionProc
   }
