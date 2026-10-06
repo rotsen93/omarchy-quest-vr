@@ -8,14 +8,17 @@ streaming de ultra baja latencia por cable USB (reverse tethering), monitor virt
 ## Características
 
 - 󰄛 **Widget nativo de barra en Omarchy (Quickshell)**:
-  - Telemetría en vivo del visor: nivel de batería, estado de transmisión y túnel USB.
+  - Telemetría en vivo del visor: nivel de batería, estado de transmisión y tipo de enlace activo.
+  - Selector de modo: **Auto** (Plug & Play inteligente), **Cable USB** forzado o **Wi-Fi LAN**.
   - Alternador con un solo clic o atajo (`SUPER + ALT + V`) entre monitor físico 16:9 y **Ultrawide virtual 32:9**.
+  - Botón de instalación automática de apps en el visor en un solo paso.
   - Lanzadores directos para Moonlight XR y Spatial HUD en el visor vía ADB.
-- 🔌 **Streaming por cable sin latencia ni dependencia de Wi-Fi**:
-  - Reverse tethering automático vía **Gnirehtet** sobre ADB (`10.0.2.2`).
-  - Túnel transparente con soporte total para paquetes UDP de video/audio.
-- 🚀 **Auto-lanzador por hardware (udev)**:
-  - Al enchufar el cable USB, el sistema detecta el visor y abre automáticamente el Spatial HUD en el navegador y Moonlight XR.
+- 🔌 **Doble vía de conexión (Cable USB o Wi-Fi)**:
+  - **Modo Auto (Plug & Play)**: Si el cable USB está enchufado, usa el túnel de cable ultrarrápido (`10.0.2.2`); si se desconecta el cable, conmuta automáticamente a la red Wi-Fi local sin configuración manual.
+  - **Modo Cable**: Prioriza latencia mínima (<1ms de red) y encapsula paquetes UDP vía Gnirehtet.
+  - **Modo Wi-Fi**: Conexión inalámbrica libre por la red local a través de la IP de la laptop.
+- 🚀 **Auto-lanzador inteligente por hardware (udev)**:
+  - Al enchufar el cable USB, el sistema detecta el visor, estabiliza el enlace y abre automáticamente el Spatial HUD en el navegador y Moonlight XR.
 - 🌌 **Spatial HUD (Realidad Mixta / Passthrough)**:
   - Panel web flotante con tema translúcido oscuro (`http://10.0.2.2:9090`):
     1. **Métricas de PC**: CPU, temperatura, RAM y consumo en Watts de la batería del ThinkPad.

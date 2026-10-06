@@ -9,14 +9,17 @@ Panel {
   moduleName: "makiaveloh.quest-vr"
   ipcTarget: "makiaveloh.quest-vr"
 
-  property bool questConnected: false
+  property string connectionMode: "auto"
+  property string transport: "none"
+  property bool questUsb: false
+  property bool questWifi: false
   property bool streaming: false
   property bool ultrawide: false
   property bool gnirehtetActive: false
   property string batteryLevel: "--"
 
   readonly property string icon: "󰄛"
-  readonly property color statusColor: streaming ? Color.accent : (questConnected ? Color.accent : root.bar.foreground)
+  readonly property color statusColor: streaming ? Color.accent : (transport !== "none" ? Color.accent : root.bar.foreground)
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
@@ -36,7 +39,10 @@ Panel {
       onRead: function(line) {
         try {
           var data = JSON.parse(line.trim())
-          root.questConnected = data.quest_connected
+          root.connectionMode = data.mode
+          root.transport = data.transport
+          root.questUsb = data.quest_usb
+          root.questWifi = data.quest_wifi
           root.streaming = data.streaming
           root.ultrawide = data.ultrawide
           root.gnirehtetActive = data.gnirehtet
@@ -50,8 +56,10 @@ Panel {
     id: actionProc
   }
 
-  function runAction(action) {
-    actionProc.command = [Qt.resolvedUrl("quest_ctl").toString().replace(/^file:\/\//, ""), action]
+  function runAction(action, param) {
+    var cmd = [Qt.resolvedUrl("quest_ctl").toString().replace(/^file:\/\//, ""), action]
+    if (param !== undefined) cmd.push(param)
+    actionProc.command = cmd
     actionProc.running = true
     Qt.callLater(function() { statusProc.running = true })
   }
@@ -64,7 +72,7 @@ Panel {
     active: root.streaming
     useActiveColor: true
     activeColor: Color.accent
-    tooltipText: root.streaming ? "Quest 3: Transmitiendo (" + root.batteryLevel + "%)" : (root.questConnected ? "Quest 3 conectado (" + root.batteryLevel + "%)" : "Quest 3 desconectado")
+    tooltipText: root.streaming ? "Quest 3: Transmitiendo (" + root.batteryLevel + "% · " + root.transport + ")" : (root.transport !== "none" ? "Quest 3 conectado (" + root.batteryLevel + "% · " + root.transport + ")" : "Quest 3 desconectado")
     onPressed: function(b) {
       if (b === Qt.RightButton) {
         root.runAction("toggle_ultrawide")
@@ -81,7 +89,7 @@ Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(320))
+    contentWidth: panel.fittedContentWidth(Style.space(330))
     contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight)
 
     PanelKeyCatcher {
@@ -122,16 +130,16 @@ Panel {
             }
 
             Text {
-              text: root.streaming ? "Transmitiendo en vivo" : (root.questConnected ? "Conectado vía USB" : "No detectado")
+              text: root.streaming ? "Transmitiendo en vivo (" + root.transport + ")" : (root.transport !== "none" ? "Conectado (" + root.transport + ")" : "No detectado")
               font.pixelSize: Style.font.caption
-              color: root.streaming ? Color.accent : (root.questConnected ? Color.accent : Color.muted)
+              color: root.streaming ? Color.accent : (root.transport !== "none" ? Color.accent : Color.muted)
             }
           }
         }
 
         PanelSeparator { foreground: root.bar.foreground }
 
-        // Telemetry cards
+        // Telemetry: Battery & Active Link
         Row {
           width: parent.width
           spacing: Style.space(10)
@@ -177,18 +185,61 @@ Panel {
               spacing: Style.space(2)
 
               Text {
-                text: "Túnel USB"
+                text: "Enlace Activo"
                 font.pixelSize: Style.font.caption
                 color: Color.muted
                 anchors.horizontalCenter: parent.horizontalCenter
               }
               Text {
-                text: root.gnirehtetActive ? "10.0.2.2 OK" : "Inactivo"
+                text: root.transport === "cable" ? "Cable USB" : (root.transport === "wifi" ? "Wi-Fi LAN" : "Ninguno")
                 font.pixelSize: Style.font.body
                 font.weight: Font.Bold
-                color: root.gnirehtetActive ? Color.accent : Color.urgent
+                color: root.transport !== "none" ? Color.accent : Color.urgent
                 anchors.horizontalCenter: parent.horizontalCenter
               }
+            }
+          }
+        }
+
+        PanelSeparator { foreground: root.bar.foreground }
+
+        // Mode Switcher (Auto / Cable / Wi-Fi)
+        Column {
+          width: parent.width
+          spacing: Style.space(6)
+
+          Text {
+            text: "Modo de conexión:"
+            font.pixelSize: Style.font.caption
+            color: Color.muted
+          }
+
+          Row {
+            width: parent.width
+            spacing: Style.space(6)
+
+            Button {
+              width: (parent.width - Style.space(12)) / 3
+              bordered: true
+              selected: root.connectionMode === "auto"
+              text: "Auto"
+              onClicked: root.runAction("set_mode", "auto")
+            }
+
+            Button {
+              width: (parent.width - Style.space(12)) / 3
+              bordered: true
+              selected: root.connectionMode === "cable"
+              text: "Cable"
+              onClicked: root.runAction("set_mode", "cable")
+            }
+
+            Button {
+              width: (parent.width - Style.space(12)) / 3
+              bordered: true
+              selected: root.connectionMode === "wifi"
+              text: "Wi-Fi"
+              onClicked: root.runAction("set_mode", "wifi")
             }
           }
         }
@@ -215,7 +266,7 @@ Panel {
             width: parent.width
             leftAlign: true
             bordered: true
-            enabled: root.questConnected
+            enabled: root.questUsb
             text: "  󰢹   Lanzar Moonlight XR"
             onClicked: {
               root.runAction("launch_moonlight")
@@ -227,8 +278,8 @@ Panel {
             width: parent.width
             leftAlign: true
             bordered: true
-            enabled: root.questConnected
-            text: "  󰖟   Abrir Spatial HUD (10.0.2.2:9090)"
+            enabled: root.questUsb
+            text: "  󰖟   Abrir Spatial HUD"
             onClicked: {
               root.runAction("launch_hud")
               root.close()
@@ -239,7 +290,7 @@ Panel {
             width: parent.width
             leftAlign: true
             bordered: true
-            enabled: root.questConnected
+            enabled: root.questUsb
             text: "  󰁝   Instalar Apps en el Visor"
             onClicked: {
               root.runAction("install_headset")

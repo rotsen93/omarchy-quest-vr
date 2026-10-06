@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+CONF_FILE="${HOME}/.config/quest-vr/config.json"
+MODE="auto"
+if [[ -f "${CONF_FILE}" ]]; then
+  MODE=$(python3 -c "import json; print(json.load(open('${CONF_FILE}')).get('connection_mode', 'auto'))" 2>/dev/null || echo "auto")
+fi
+
 QUEST_SERIAL=""
 for i in $(seq 1 15); do
   QUEST_SERIAL=$(adb devices -l 2>/dev/null | grep -E "model:Quest|product:eureka" | awk '{print $1}' | head -n 1 || true)
@@ -15,12 +21,28 @@ if [[ -z "$QUEST_SERIAL" ]]; then
   exit 0
 fi
 
-# Give gnirehtet USB tunnel a brief moment to stabilize
-sleep 2
+# Detect & store Quest Wi-Fi IP for seamless wireless fallback
+WIFI_IP=$(adb -s "$QUEST_SERIAL" shell "ip -4 addr show wlan0" 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1 || true)
+if [[ -n "$WIFI_IP" ]]; then
+  mkdir -p "${HOME}/.config/quest-vr"
+  python3 -c "import json, os; p='${CONF_FILE}'; d=json.load(open(p)) if os.path.exists(p) else {}; d['wifi_ip']='${WIFI_IP}'; json.dump(d, open(p, 'w'), indent=2)" 2>/dev/null || true
+fi
+
+# Determine HUD target IP based on mode
+HUD_IP="10.0.2.2"
+if [[ "$MODE" == "wifi" ]]; then
+  # Use laptop LAN IP on Wi-Fi
+  LOCAL_IP=$(ip -4 addr show wlp9s0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1 || echo "10.0.2.2")
+  HUD_IP="${LOCAL_IP}"
+else
+  # Ensure gnirehtet USB tunnel is up and stabilized
+  systemctl --user start gnirehtet.service 2>/dev/null || true
+  sleep 2
+fi
 
 # 1. Launch Spatial HUD in Quest Browser
-echo "Opening Spatial HUD in Quest Browser..."
-adb -s "$QUEST_SERIAL" shell am start -a android.intent.action.VIEW -d "http://10.0.2.2:9090" >/dev/null 2>&1 || true
+echo "Opening Spatial HUD in Quest Browser (${HUD_IP}:9090)..."
+adb -s "$QUEST_SERIAL" shell am start -a android.intent.action.VIEW -d "http://${HUD_IP}:9090" >/dev/null 2>&1 || true
 
 # 2. Launch Moonlight XR on Quest 3
 echo "Launching Moonlight XR on Quest ($QUEST_SERIAL)..."

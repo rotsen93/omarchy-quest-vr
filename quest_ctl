@@ -1,47 +1,117 @@
 #!/bin/bash
 set -euo pipefail
 
-action="${1:-status}"
+CONF_DIR="${HOME}/.config/quest-vr"
+CONF_FILE="${CONF_DIR}/config.json"
+mkdir -p "${CONF_DIR}"
 
-# Helper to find user home robustly
-BIN_DIR="${HOME}/.local/bin"
+if [[ ! -f "${CONF_FILE}" ]]; then
+  echo '{"connection_mode":"auto","wifi_ip":"","auto_launch":true}' > "${CONF_FILE}"
+fi
+
+get_config_val() {
+  local key="$1"
+  local fallback="$2"
+  python3 -c "import json; d=json.load(open('${CONF_FILE}')); print(d.get('${key}', '${fallback}'))" 2>/dev/null || echo "${fallback}"
+}
+
+set_config_val() {
+  local key="$1"
+  local val="$2"
+  python3 -c "import json; p='${CONF_FILE}'; d=json.load(open(p)); d['${key}']=${val}; json.dump(d, open(p, 'w'), indent=2)"
+}
+
+action="${1:-status}"
 
 case "$action" in
   status)
-    quest_connected="false"
+    mode=$(get_config_val "connection_mode" "auto")
+    wifi_ip=$(get_config_val "wifi_ip" "")
+    
+    # 1. Detect USB / ADB
+    quest_usb="false"
+    quest_wifi="false"
+    battery_level="--"
+    active_transport="none"
+
     if adb devices -l 2>/dev/null | grep -qE "model:Quest|product:eureka"; then
-      quest_connected="true"
+      quest_usb="true"
+      bat=$(adb shell "dumpsys battery | grep level" 2>/dev/null | awk '{print $2}' || true)
+      [[ -n "$bat" ]] && battery_level="$bat"
     fi
 
+    # 2. Check Wi-Fi reachability if Wi-Fi IP known or discoverable
+    if [[ -n "$wifi_ip" ]]; then
+      if ping -c 1 -W 1 "$wifi_ip" >/dev/null 2>&1; then
+        quest_wifi="true"
+      fi
+    fi
+
+    # Determine transport
+    if [[ "$mode" == "cable" ]]; then
+      [[ "$quest_usb" == "true" ]] && active_transport="cable"
+    elif [[ "$mode" == "wifi" ]]; then
+      [[ "$quest_wifi" == "true" ]] && active_transport="wifi"
+    else # auto
+      if [[ "$quest_usb" == "true" ]]; then
+        active_transport="cable"
+      elif [[ "$quest_wifi" == "true" ]]; then
+        active_transport="wifi"
+      fi
+    fi
+
+    # Sunshine streaming status
     streaming="false"
     if ss -tunp 2>/dev/null | grep -qE "47998|47999|48000"; then
       streaming="true"
     fi
 
+    # Ultrawide status
     ultrawide="false"
     if hyprctl monitors 2>/dev/null | grep -q "HEADLESS-1"; then
       ultrawide="true"
     fi
 
+    # Gnirehtet status
     gnirehtet_active="false"
     if systemctl --user is-active gnirehtet.service >/dev/null 2>&1; then
       gnirehtet_active="true"
     fi
 
-    battery_level="--"
-    if [[ "$quest_connected" == "true" ]]; then
-      bat=$(adb shell "dumpsys battery | grep level" 2>/dev/null | awk '{print $2}' || true)
-      if [[ -n "$bat" ]]; then
-        battery_level="$bat"
-      fi
-    fi
+    echo "{\"mode\":\"$mode\",\"transport\":\"$active_transport\",\"quest_usb\":$quest_usb,\"quest_wifi\":$quest_wifi,\"streaming\":$streaming,\"ultrawide\":$ultrawide,\"gnirehtet\":$gnirehtet_active,\"battery\":\"$battery_level\",\"wifi_ip\":\"$wifi_ip\"}"
+    ;;
 
-    echo "{\"quest_connected\":$quest_connected,\"streaming\":$streaming,\"ultrawide\":$ultrawide,\"gnirehtet\":$gnirehtet_active,\"battery\":\"$battery_level\"}"
+  set_mode)
+    new_mode="${2:-auto}"
+    set_config_val "connection_mode" "\"$new_mode\""
+    
+    # Adapt services based on mode
+    if [[ "$new_mode" == "wifi" ]]; then
+      # In pure Wi-Fi mode, pause Gnirehtet to avoid routing conflicts
+      systemctl --user stop gnirehtet.service 2>/dev/null || true
+    else
+      # In auto or cable mode, ensure Gnirehtet is ready
+      systemctl --user start gnirehtet.service 2>/dev/null || true
+    fi
+    ;;
+
+  toggle_mode)
+    curr=$(get_config_val "connection_mode" "auto")
+    case "$curr" in
+      auto) "$0" set_mode "cable" ;;
+      cable) "$0" set_mode "wifi" ;;
+      wifi) "$0" set_mode "auto" ;;
+    esac
+    ;;
+
+  set_wifi_ip)
+    new_ip="${2:-}"
+    set_config_val "wifi_ip" "\"$new_ip\""
     ;;
 
   toggle_ultrawide)
-    if [[ -x "${BIN_DIR}/vr-screen" ]]; then
-      "${BIN_DIR}/vr-screen" toggle >/dev/null 2>&1 || true
+    if [[ -x "${HOME}/.local/bin/vr-screen" ]]; then
+      "${HOME}/.local/bin/vr-screen" toggle >/dev/null 2>&1 || true
     fi
     ;;
 
@@ -50,28 +120,34 @@ case "$action" in
     ;;
 
   launch_hud)
-    adb shell am start -a android.intent.action.VIEW -d "http://10.0.2.2:9090" >/dev/null 2>&1 || true
+    mode=$(get_config_val "connection_mode" "auto")
+    hud_ip="10.0.2.2"
+    if [[ "$mode" == "wifi" ]]; then
+      # Get local laptop IP
+      local_ip=$(ip -4 addr show wlp9s0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1 || echo "10.0.2.2")
+      hud_ip="${local_ip}"
+    fi
+    adb shell am start -a android.intent.action.VIEW -d "http://${hud_ip}:9090" >/dev/null 2>&1 || true
+    ;;
+
+  install_headset)
+    if [[ -x "${HOME}/.local/bin/quest-install-headset" ]]; then
+      if command -v alacritty >/dev/null 2>&1; then
+        alacritty -e "${HOME}/.local/bin/quest-install-headset" >/dev/null 2>&1 &
+      elif command -v kitty >/dev/null 2>&1; then
+        kitty "${HOME}/.local/bin/quest-install-headset" >/dev/null 2>&1 &
+      else
+        "${HOME}/.local/bin/quest-install-headset" >/dev/null 2>&1 &
+      fi
+    fi
     ;;
 
   restart_sunshine)
     systemctl --user restart app-dev.lizardbyte.app.Sunshine.service >/dev/null 2>&1 || true
     ;;
 
-  install_headset)
-    if [[ -x "${BIN_DIR}/quest-install-headset" ]]; then
-      # Launch in background terminal or notify
-      if command -v alacritty >/dev/null 2>&1; then
-        alacritty -e "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
-      elif command -v kitty >/dev/null 2>&1; then
-        kitty "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
-      else
-        "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
-      fi
-    fi
-    ;;
-
   *)
-    echo "Usage: $0 {status|toggle_ultrawide|launch_moonlight|launch_hud|restart_sunshine|install_headset}"
+    echo "Unknown action: $action"
     exit 1
     ;;
 esac
