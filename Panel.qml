@@ -239,6 +239,18 @@ Panel {
             width: parent.width
             leftAlign: true
             bordered: true
+            enabled: root.questConnected
+            text: "  󰁝   Instalar Apps en el Visor"
+            onClicked: {
+              root.runAction("install_headset")
+              root.close()
+            }
+          }
+
+          Button {
+            width: parent.width
+            leftAlign: true
+            bordered: true
             text: "  󰑐   Reiniciar Sunshine"
             onClicked: {
               root.runAction("restart_sunshine")

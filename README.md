@@ -38,19 +38,32 @@ streaming de ultra baja latencia por cable USB (reverse tethering), monitor virt
 
 ---
 
-## Requisitos
+## Requisitos y Preparación del Visor (Meta Quest)
 
-- **OS**: Omarchy 4 (Quattro) / Arch Linux con Hyprland.
-- **Hardware**: Meta Quest 3 conectado vía cable USB-C con *Depuración USB* habilitada.
-- **Paquetes**: `sunshine`, `libva-utils`, `ttyd`, `android-tools`.
+### 1. Activar el Modo Desarrollador en el Quest
+1. Abre la aplicación **Meta Horizon** en tu teléfono móvil emparejado con el visor.
+2. Ve a **Menú** ➔ **Dispositivos** ➔ Selecciona tu Meta Quest 3.
+3. Entra en **Ajustes de auriculares** ➔ **Modo Desarrollador**.
+4. Activa la casilla **Modo Desarrollador** (si es tu primera vez, Meta te pedirá registrar una organización gratuita con verificación de dos pasos o tarjeta).
+
+### 2. Permitir la Depuración USB (ADB)
+1. Conecta el Meta Quest 3 a la laptop con un cable USB-C de datos.
+2. **Ponte el visor**: aparecerá una ventana emergente en el visor diciendo:
+   > *"¿Permitir depuración por USB desde esta computadora?"*
+3. Marca la casilla **"Permitir siempre desde esta computadora"** y presiona **Permitir**.
+4. Verifica en tu terminal de Linux:
+   ```bash
+   adb devices
+   ```
+   Deberás ver tu número de serie con el estado `device`.
 
 ---
 
-## Instalación
+## Instalación en la PC
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/makiaveloh/omarchy-quest-vr.git
+git clone https://github.com/rotsen93/omarchy-quest-vr.git
 cd omarchy-quest-vr
 ```
 
@@ -60,7 +73,7 @@ cd omarchy-quest-vr
 ```
 
 ### 3. Registrar el widget en tu barra
-Edita `~/.config/omarchy/shell.json` y añade `"makiaveloh.quest-vr"` a la sección deseada:
+Edita `~/.config/omarchy/shell.json` y añade `"makiaveloh.quest-vr"` en la sección `right` de tu barra:
 ```json
 {
   "bar": {
@@ -73,24 +86,38 @@ Edita `~/.config/omarchy/shell.json` y añade `"makiaveloh.quest-vr"` a la secci
 }
 ```
 
-Reinicia el shell de Omarchy:
+Aplica los cambios reiniciando el shell:
 ```bash
 omarchy restart shell
 ```
 
 ---
 
-## En el Visor (Meta Quest 3)
+## Instalación Automática en el Visor
 
-1. **Instalar Moonlight XR**:
-   - Descarga el APK de [Moonlight XR Releases](https://github.com/Gilleece/moonlight-android-xr/releases) e instálalo con:
-     ```bash
-     adb install moonlight_XR_v0.4.2.apk
-     ```
-2. **Conectar**:
-   - Conecta el cable USB a la laptop y acepta el diálogo de **Conexión VPN** la primera vez.
-   - En Moonlight añade el equipo con la IP `10.0.2.2`.
-   - Empareja el PIN en `https://localhost:47990` en tu PC.
+Una vez que el visor esté conectado por USB y con ADB autorizado, puedes instalar todo el software del visor en un solo paso:
+
+1. **Desde la barra de Omarchy**:
+   - Haz clic en el icono del visor (󰄛) en la barra.
+   - Presiona el botón **"Instalar Apps en el Visor"**.
+
+2. **O desde la terminal**:
+   ```bash
+   ~/.local/bin/quest-install-headset
+   ```
+
+Esto descargará e instalará automáticamente:
+- El cliente **Gnirehtet** (para el túnel IP por cable USB sin Wi-Fi).
+- El cliente oficial **Moonlight XR** (para streaming OpenXR de ultra baja latencia).
+
+---
+
+## Primer Uso
+
+1. Conecta el cable USB a la laptop (el auto-lanzador abrirá el HUD y Moonlight XR de forma automática).
+2. En el visor, acepta la solicitud de **Conexión VPN** (túnel local seguro de Gnirehtet).
+3. En Moonlight XR añade la IP `10.0.2.2`.
+4. Empareja el PIN de 4 dígitos en el navegador de tu laptop en `https://localhost:47990`.
 
 ---
 
@@ -100,9 +127,6 @@ Para retirar el plugin y todos sus servicios sin dejar residuos:
 ```bash
 ./uninstall.sh
 ```
-
----
-
 ## Licencia
 
 Distribuido bajo la licencia [MIT](LICENSE).

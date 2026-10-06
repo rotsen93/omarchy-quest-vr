@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "=========================================="
+echo "  Quest VR Link - Setup Quest 3 Headset"
+echo "=========================================="
+
+# Check ADB
+if ! command -v adb >/dev/null 2>&1; then
+  echo "Error: adb no está instalado en la laptop."
+  exit 1
+fi
+
+echo "Buscando visor Meta Quest conectado por USB..."
+QUEST_SERIAL=""
+for i in $(seq 1 10); do
+  QUEST_SERIAL=$(adb devices -l 2>/dev/null | grep -E "model:Quest|product:eureka" | awk '{print $1}' | head -n 1 || true)
+  if [[ -n "$QUEST_SERIAL" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ -z "$QUEST_SERIAL" ]]; then
+  echo "Error: No se detectó ningún Meta Quest conectado por USB o con depuración ADB activa."
+  echo "Asegúrate de:"
+  echo " 1. Habilitar el Modo Desarrollador en la app Meta Horizon en tu teléfono."
+  echo " 2. Conectar el cable USB a la laptop."
+  echo " 3. Ponerte el visor y aceptar el diálogo 'Permitir depuración USB'."
+  exit 1
+fi
+
+echo "Visor detectado: ${QUEST_SERIAL}"
+
+# 1. Install Gnirehtet client APK (USB reverse tethering)
+GNIREHTET_APK="${HOME}/.local/share/gnirehtet/gnirehtet.apk"
+if [[ -f "${GNIREHTET_APK}" ]]; then
+  echo "[1/2] Instalando cliente Gnirehtet (túnel USB)..."
+  adb -s "${QUEST_SERIAL}" install -r -g "${GNIREHTET_APK}" || true
+else
+  echo "[1/2] Descargando e instalando cliente Gnirehtet..."
+  TMP_DIR="/tmp/gnirehtet_setup"
+  mkdir -p "${TMP_DIR}"
+  curl -sL -o "${TMP_DIR}/gnirehtet.zip" "https://github.com/Genymobile/gnirehtet/releases/download/v2.5.1/gnirehtet-rust-linux64-v2.5.1.zip"
+  unzip -q -o "${TMP_DIR}/gnirehtet.zip" -d "${TMP_DIR}"
+  adb -s "${QUEST_SERIAL}" install -r -g "${TMP_DIR}/gnirehtet-rust-linux64/gnirehtet.apk" || true
+  rm -rf "${TMP_DIR}"
+fi
+
+# 2. Install Moonlight XR
+MOONLIGHT_APK="${HOME}/Downloads/moonlight_XR_v0.4.2.apk"
+echo "[2/2] Instalando Moonlight XR..."
+if [[ ! -f "${MOONLIGHT_APK}" ]]; then
+  echo "Descargando Moonlight XR v0.4.2..."
+  curl -fL -o "${MOONLIGHT_APK}" "https://github.com/Gilleece/moonlight-android-xr/releases/download/v0.4/moonlight_XR_v0.4.2.apk"
+fi
+
+adb -s "${QUEST_SERIAL}" install -r -g "${MOONLIGHT_APK}"
+
+echo ""
+echo "=========================================="
+echo "  ¡Instalación en el visor completada!"
+echo "  Ponte el visor:"
+echo "   1. Acepta la solicitud de 'Conexión VPN' de Gnirehtet."
+echo "   2. Abre Moonlight XR y añade la IP: 10.0.2.2"
+echo "=========================================="

@@ -19,7 +19,8 @@ pkexec pacman -S --needed --noconfirm sunshine libva-utils ttyd android-tools
 echo "[2/6] Installing helper scripts..."
 cp "${SCRIPT_DIR}/bin/vr-screen" "${BIN_DIR}/vr-screen"
 cp "${SCRIPT_DIR}/bin/quest-auto-launch" "${BIN_DIR}/quest-auto-launch"
-chmod +x "${BIN_DIR}/vr-screen" "${BIN_DIR}/quest-auto-launch"
+cp "${SCRIPT_DIR}/bin/quest-install-headset" "${BIN_DIR}/quest-install-headset"
+chmod +x "${BIN_DIR}/vr-screen" "${BIN_DIR}/quest-auto-launch" "${BIN_DIR}/quest-install-headset"
 
 echo "[3/6] Setting up Spatial HUD server..."
 cp -r "${SCRIPT_DIR}/hud/"* "${HUD_DIR}/"

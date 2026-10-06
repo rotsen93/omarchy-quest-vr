@@ -57,8 +57,21 @@ case "$action" in
     systemctl --user restart app-dev.lizardbyte.app.Sunshine.service >/dev/null 2>&1 || true
     ;;
 
+  install_headset)
+    if [[ -x "${BIN_DIR}/quest-install-headset" ]]; then
+      # Launch in background terminal or notify
+      if command -v alacritty >/dev/null 2>&1; then
+        alacritty -e "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
+      elif command -v kitty >/dev/null 2>&1; then
+        kitty "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
+      else
+        "${BIN_DIR}/quest-install-headset" >/dev/null 2>&1 &
+      fi
+    fi
+    ;;
+
   *)
-    echo "Usage: $0 {status|toggle_ultrawide|launch_moonlight|launch_hud|restart_sunshine}"
+    echo "Usage: $0 {status|toggle_ultrawide|launch_moonlight|launch_hud|restart_sunshine|install_headset}"
     exit 1
     ;;
 esac
