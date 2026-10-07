@@ -68,36 +68,24 @@ streaming de ultra baja latencia de doble vía (**Cable USB con reverse tetherin
 
 ## Instalación en la PC
 
-### 1. Clonar el repositorio
+### Opción A: Vía `omarchy plugin add` (Recomendado)
+```bash
+omarchy plugin add https://github.com/rotsen93/omarchy-quest-vr.git --enable
+~/.config/omarchy/plugins/quest-vr-link/install.sh
+```
+
+### Opción B: Clon manual desde Git
 ```bash
 git clone https://github.com/rotsen93/omarchy-quest-vr.git
 cd omarchy-quest-vr
-```
-
-### 2. Ejecutar el instalador
-```bash
 ./install.sh
 ```
 
-### 3. Registrar el widget en tu barra
-Edita `~/.config/omarchy/shell.json` y añade `"quest-vr-link"` en la sección `right` de tu barra:
-```json
-{
-  "bar": {
-    "layout": {
-      "right": [
-        { "id": "quest-vr-link" }
-      ]
-    }
-  }
-}
-```
-
-Aplica los cambios reiniciando el shell:
+### Ubicación en la barra
+Para mover el widget a la sección deseada:
 ```bash
-omarchy restart shell
+omarchy bar move quest-vr-link --section right
 ```
-
 ---
 
 ## Instalación Automática en el Visor
@@ -133,6 +121,7 @@ Esto descargará e instalará automáticamente:
 Para retirar el plugin y todos sus servicios sin dejar residuos:
 ```bash
 ./uninstall.sh
+omarchy plugin remove quest-vr-link
 ```
 ---
 

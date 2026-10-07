@@ -20,7 +20,8 @@ echo "[2/6] Installing helper scripts..."
 cp "${SCRIPT_DIR}/bin/vr-screen" "${BIN_DIR}/vr-screen"
 cp "${SCRIPT_DIR}/bin/quest-auto-launch" "${BIN_DIR}/quest-auto-launch"
 cp "${SCRIPT_DIR}/bin/quest-install-headset" "${BIN_DIR}/quest-install-headset"
-chmod +x "${BIN_DIR}/vr-screen" "${BIN_DIR}/quest-auto-launch" "${BIN_DIR}/quest-install-headset"
+cp "${SCRIPT_DIR}/bin/quest-cleanup" "${BIN_DIR}/quest-cleanup"
+chmod +x "${BIN_DIR}/vr-screen" "${BIN_DIR}/quest-auto-launch" "${BIN_DIR}/quest-install-headset" "${BIN_DIR}/quest-cleanup"
 
 echo "[3/6] Setting up Spatial HUD server..."
 cp -r "${SCRIPT_DIR}/hud/"* "${HUD_DIR}/"
@@ -37,16 +38,17 @@ pkexec udevadm control --reload-rules
 
 echo "[6/6] Checking Gnirehtet binaries..."
 if [[ ! -f "${GNIREHTET_DIR}/gnirehtet" ]]; then
-  echo "Downloading Gnirehtet v2.5.1..."
-  TMP_GNI="/tmp/gnirehtet_install"
-  mkdir -p "${TMP_GNI}"
-  curl -sL -o "${TMP_GNI}/gnirehtet.zip" "https://github.com/Genymobile/gnirehtet/releases/download/v2.5.1/gnirehtet-rust-linux64-v2.5.1.zip"
-  unzip -q -o "${TMP_GNI}/gnirehtet.zip" -d "${TMP_GNI}"
+  echo "Downloading Gnirehtet v2.5.1 with SHA-256 integrity check..."
+  TMP_GNI=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/gnirehtet_install.XXXXXX")
+  GNI_ZIP="${TMP_GNI}/gnirehtet.zip"
+  GNI_SHA="dee55499ca4fef00ce2559c767d2d8130163736d43fdbce753e923e75309c275"
+  curl -sL -o "${GNI_ZIP}" "https://github.com/Genymobile/gnirehtet/releases/download/v2.5.1/gnirehtet-rust-linux64-v2.5.1.zip"
+  echo "${GNI_SHA}  ${GNI_ZIP}" | sha256sum -c -
+  unzip -q -o "${GNI_ZIP}" -d "${TMP_GNI}"
   cp "${TMP_GNI}/gnirehtet-rust-linux64/"* "${GNIREHTET_DIR}/"
   ln -sf "${GNIREHTET_DIR}/gnirehtet" "${BIN_DIR}/gnirehtet"
   rm -rf "${TMP_GNI}"
 fi
-
 echo "=========================================="
 echo "  Instalación completada exitosamente!"
 echo "  Agrega el widget en ~/.config/omarchy/shell.json:"

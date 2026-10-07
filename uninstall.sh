@@ -21,8 +21,10 @@ systemctl --user daemon-reload
 echo "Removing binaries and HUD..."
 rm -f "${BIN_DIR}/vr-screen"
 rm -f "${BIN_DIR}/quest-auto-launch"
+rm -f "${BIN_DIR}/quest-install-headset"
+rm -f "${BIN_DIR}/quest-cleanup"
 rm -rf "${HOME}/.local/share/vr-hud"
-
+rm -rf "${HOME}/.config/quest-vr"
 echo "Removing udev rule..."
 if [[ -f "/etc/udev/rules.d/99-quest3.rules" ]]; then
   pkexec rm -f "/etc/udev/rules.d/99-quest3.rules"
