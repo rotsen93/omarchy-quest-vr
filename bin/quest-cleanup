@@ -1,14 +1,27 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Quest 3 desconectado: deteniendo servicios VR en segundo plano para ahorrar recursos..."
+echo "Quest 3 desconectado: cerrando túnel Gnirehtet y servicios..."
 
-# 1. Stop background VR user services
+CONF_FILE="${HOME}/.config/quest-vr/config.json"
+WIFI_IP=""
+if [[ -f "${CONF_FILE}" ]]; then
+  WIFI_IP=$(python3 -c "import json; print(json.load(open('${CONF_FILE}')).get('wifi_ip', ''))" 2>/dev/null || true)
+fi
+
+# 1. Stop the Gnirehtet VPN on the headset over wireless ADB so the Quest immediately regains normal Wi-Fi
+if [[ -n "$WIFI_IP" ]]; then
+  adb connect "${WIFI_IP}:5555" >/dev/null 2>&1 || true
+  adb -s "${WIFI_IP}:5555" shell am start -a com.genymobile.gnirehtet.STOP -n com.genymobile.gnirehtet/.GnirehtetActivity >/dev/null 2>&1 || true
+  adb disconnect "${WIFI_IP}:5555" >/dev/null 2>&1 || true
+fi
+
+# 2. Stop background VR services on the laptop to save resources
 systemctl --user stop gnirehtet.service spatial-hud.service vr-ttyd.service 2>/dev/null || true
 
-# 2. If ultrawide headless monitor was active, restore normal laptop screen
+# 3. If ultrawide headless monitor was active, restore normal laptop screen
 if hyprctl monitors 2>/dev/null | grep -q "HEADLESS-1"; then
   "${HOME}/.local/bin/vr-screen" off >/dev/null 2>&1 || true
 fi
 
-echo "Servicios VR detenidos limpiamente."
+echo "Desconexión limpia completada. El visor vuelve a su Wi-Fi habitual."

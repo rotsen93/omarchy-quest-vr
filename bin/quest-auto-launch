@@ -26,6 +26,8 @@ WIFI_IP=$(adb -s "$QUEST_SERIAL" shell "ip -4 addr show wlan0" 2>/dev/null | gre
 if [[ -n "$WIFI_IP" ]]; then
   mkdir -p "${HOME}/.config/quest-vr"
   python3 -c "import json, os; p='${CONF_FILE}'; d=json.load(open(p)) if os.path.exists(p) else {}; d['wifi_ip']='${WIFI_IP}'; json.dump(d, open(p, 'w'), indent=2)" 2>/dev/null || true
+  # Enable wireless ADB on the headset while cable is connected so cleanup works even after disconnect
+  adb -s "$QUEST_SERIAL" tcpip 5555 >/dev/null 2>&1 || true
 fi
 
 # Determine HUD target IP based on mode
