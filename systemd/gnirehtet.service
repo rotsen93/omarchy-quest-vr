@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=%h/.local/share/gnirehtet
-ExecStart=%h/.local/bin/gnirehtet autorun
+ExecStart=%h/.local/bin/gnirehtet autorun -r 10.0.2.2/32,192.168.1.0/24
 Restart=on-failure
 RestartSec=3
 
