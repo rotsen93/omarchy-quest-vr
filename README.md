@@ -132,6 +132,7 @@ omarchy plugin remove quest-vr-link
 
 ---
 
-## Licencia
+## Licencia y Avisos a Terceros
 
-Distribuido bajo la licencia [MIT](LICENSE).
+Distribuido bajo la licencia [MIT](LICENSE).  
+Para avisos de licencias de componentes de terceros integrados, consulta [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
