@@ -9,6 +9,29 @@ streaming de ultra baja latencia de doble vía (**Cable USB con reverse tetherin
 
 ---
 
+## Actualización de instalaciones existentes
+
+Al actualizar con `omarchy plugin update quest-vr-link`, Omarchy recarga el
+plugin. Si está habilitado y la shell está en ejecución, la migración deshabilita
+y detiene `vr-ttyd.service` y elimina la unidad y el cliente web antiguos.
+
+Para completar la actualización de los componentes instalados fuera del
+checkout, ejecuta el instalador actualizado desde tu sesión de escritorio.
+Esto también ejecuta la migración en instalaciones manuales, con el plugin
+deshabilitado o sin la shell de Omarchy en ejecución.
+
+```bash
+~/.config/omarchy/plugins/quest-vr-link/install.sh
+```
+
+Si usas un clon manual, actualízalo con `git pull --ff-only` y ejecuta
+`./install.sh` desde el clon. Para ejecutar solo la migración, usa
+`bash migrate-legacy-terminal.sh` desde el checkout actualizado.
+Comprueba que el servicio esté inactivo con
+`systemctl --user show -p ActiveState vr-ttyd.service`.
+
+---
+
 ## Características
 
 - 󰄛 **Widget nativo de barra en Omarchy (Quickshell)**:

@@ -7,10 +7,12 @@
   "license": "MIT",
   "description": "Integration and control for Meta Quest 3 on Omarchy: dual-mode USB cable reverse tethering & wireless Wi-Fi streaming, Ultrawide 32:9 virtual monitor, auto-launching, and spatial floating HUD.",
   "kinds": [
-    "bar-widget"
+    "bar-widget",
+    "service"
   ],
   "entryPoints": {
-    "barWidget": "Panel.qml"
+    "barWidget": "Panel.qml",
+    "service": "LegacyTerminalMigration.qml"
   },
   "barWidget": {
     "displayName": "Quest VR Link",

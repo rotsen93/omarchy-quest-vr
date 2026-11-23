@@ -13,10 +13,7 @@ GNIREHTET_DIR="${HOME}/.local/share/gnirehtet"
 
 mkdir -p "${BIN_DIR}" "${SYSTEMD_DIR}" "${HUD_DIR}" "${GNIREHTET_DIR}"
 
-if [[ "$(systemctl --user show --property=LoadState --value vr-ttyd.service)" != "not-found" ]]; then
-  systemctl --user disable --now vr-ttyd.service
-fi
-rm -f "${SYSTEMD_DIR}/vr-ttyd.service" "${HUD_DIR}/custom_ttyd.html"
+bash "${SCRIPT_DIR}/migrate-legacy-terminal.sh"
 
 echo "[1/6] Installing dependencies..."
 pkexec pacman -S --needed --noconfirm sunshine libva-utils android-tools
