@@ -149,73 +149,6 @@
       transition: width 0.4s ease, background 0.3s ease;
     }
 
-    /* Terminal Tab & Toolbar */
-    .terminal-container {
-      width: 100%;
-      height: 420px;
-      background: rgba(10, 12, 16, 0.95);
-      border: 1px solid var(--border);
-      border-radius: 16px 16px 0 0;
-      overflow: hidden;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .term-toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      background: var(--bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 16px 16px;
-      padding: 10px;
-    }
-
-    .key-row {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .key-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: #fff;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      min-width: 44px;
-      text-align: center;
-      transition: all 0.1s ease;
-      touch-action: manipulation;
-    }
-
-    .key-btn:active {
-      transform: scale(0.92);
-      background: var(--accent);
-      color: #000;
-    }
-
-    .key-btn.active-mod {
-      background: var(--accent);
-      color: #000;
-      border-color: var(--accent);
-    }
-
-    .key-btn.key-nav {
-      background: rgba(122, 162, 247, 0.15);
-      color: var(--accent);
-    }
-
     /* Pomodoro Tab */
     .pomo-card {
       display: flex;
@@ -326,7 +259,6 @@
     <header>
       <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('hud')">Métricas</button>
-        <button class="tab-btn" onclick="switchTab('terminal')">Terminal</button>
         <button class="tab-btn" onclick="switchTab('pomo')">Pomodoro</button>
         <button class="tab-btn" onclick="switchTab('notifs')">Notificaciones</button>
       </div>
@@ -380,38 +312,7 @@
       </div>
     </div>
 
-    <!-- 2. TAB: TERMINAL CON TECLADO VIRTUAL DE ACCIONES -->
-    <div id="tab-terminal" class="tab-content">
-      <div class="terminal-container">
-        <iframe id="term-frame" src="about:blank"></iframe>
-      </div>
-      <div class="term-toolbar">
-        <!-- Fila 1: Modificadores y Atajos rápidos -->
-        <div class="key-row">
-          <button class="key-btn" id="mod-ctrl" onclick="toggleModifier('ctrl')">Ctrl</button>
-          <button class="key-btn" id="mod-alt" onclick="toggleModifier('alt')">Alt</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b')">Esc</button>
-          <button class="key-btn" onclick="sendTerminalKey('\t')">Tab</button>
-          <button class="key-btn key-nav" onclick="sendTerminalKey('\x03')">^C</button>
-          <button class="key-btn key-nav" onclick="sendTerminalKey('\x04')">^D</button>
-          <button class="key-btn key-nav" onclick="sendTerminalKey('\x1a')">^Z</button>
-          <button class="key-btn key-nav" onclick="sendTerminalKey('\x0c')">^L</button>
-        </div>
-        <!-- Fila 2: Flechas y Edición -->
-        <div class="key-row">
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[A')">▲</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[B')">▼</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[D')">◀</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[C')">▶</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[H')">Home</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[F')">End</button>
-          <button class="key-btn" onclick="sendTerminalKey('\x1b[3~')">Del</button>
-          <button class="key-btn" style="background: var(--accent); color: #000;" onclick="sendTerminalKey('\r')">Enter</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. TAB: POMODORO -->
+    <!-- 2. TAB: POMODORO -->
     <div id="tab-pomo" class="tab-content">
       <div class="pomo-card">
         <div class="pomo-mode" id="pomo-mode">Modo Enfoque</div>
@@ -424,7 +325,7 @@
       </div>
     </div>
 
-    <!-- 4. TAB: NOTIFICACIONES -->
+    <!-- 3. TAB: NOTIFICACIONES -->
     <div id="tab-notifs" class="tab-content">
       <div class="notifs-list" id="notifs-list">
         <div class="empty-notifs">No hay notificaciones recientes</div>
@@ -440,46 +341,6 @@
       event.target.classList.add('active');
       document.getElementById(`tab-${name}`).classList.add('active');
 
-      if (name === 'terminal') {
-        const frame = document.getElementById('term-frame');
-        if (frame.src === 'about:blank' || !frame.src) {
-          frame.src = `${window.location.protocol}//${window.location.hostname}:7681/`;
-        }
-      }
-    }
-
-    // Modifier Keys State
-    let ctrlActive = false;
-    let altActive = false;
-
-    function toggleModifier(mod) {
-      if (mod === 'ctrl') {
-        ctrlActive = !ctrlActive;
-        document.getElementById('mod-ctrl').classList.toggle('active-mod', ctrlActive);
-      } else if (mod === 'alt') {
-        altActive = !altActive;
-        document.getElementById('mod-alt').classList.toggle('active-mod', altActive);
-      }
-    }
-
-    function sendTerminalKey(seq) {
-      const frame = document.getElementById('term-frame');
-      if (!frame || !frame.contentWindow) return;
-
-      let payload = seq;
-      // Handle active modifiers if pressing basic letters/keys
-      if (ctrlActive && seq.length === 1) {
-        const code = seq.toUpperCase().charCodeAt(0);
-        if (code >= 64 && code <= 95) {
-          payload = String.fromCharCode(code - 64);
-        }
-        toggleModifier('ctrl');
-      } else if (altActive) {
-        payload = '\x1b' + seq;
-        toggleModifier('alt');
-      }
-
-      frame.contentWindow.postMessage({ type: 'input', data: payload }, '*');
     }
 
     // Top Clock

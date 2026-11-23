@@ -13,8 +13,13 @@ GNIREHTET_DIR="${HOME}/.local/share/gnirehtet"
 
 mkdir -p "${BIN_DIR}" "${SYSTEMD_DIR}" "${HUD_DIR}" "${GNIREHTET_DIR}"
 
+if [[ "$(systemctl --user show --property=LoadState --value vr-ttyd.service)" != "not-found" ]]; then
+  systemctl --user disable --now vr-ttyd.service
+fi
+rm -f "${SYSTEMD_DIR}/vr-ttyd.service" "${HUD_DIR}/custom_ttyd.html"
+
 echo "[1/6] Installing dependencies..."
-pkexec pacman -S --needed --noconfirm sunshine libva-utils ttyd android-tools
+pkexec pacman -S --needed --noconfirm sunshine libva-utils android-tools
 
 echo "[2/6] Installing helper scripts..."
 cp "${SCRIPT_DIR}/bin/vr-screen" "${BIN_DIR}/vr-screen"
@@ -30,7 +35,8 @@ chmod +x "${HUD_DIR}/server.py"
 echo "[4/6] Setting up systemd user services..."
 cp "${SCRIPT_DIR}/systemd/"*.service "${SYSTEMD_DIR}/"
 systemctl --user daemon-reload
-systemctl --user enable --now gnirehtet.service spatial-hud.service vr-ttyd.service app-dev.lizardbyte.app.Sunshine.service
+systemctl --user try-restart spatial-hud.service
+systemctl --user enable --now gnirehtet.service spatial-hud.service app-dev.lizardbyte.app.Sunshine.service
 
 echo "[5/6] Setting up udev rules for auto-launch..."
 pkexec cp "${SCRIPT_DIR}/udev/99-quest3.rules" /etc/udev/rules.d/99-quest3.rules

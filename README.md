@@ -22,14 +22,13 @@ streaming de ultra baja latencia de doble vía (**Cable USB con reverse tetherin
   - **Modo Cable**: Prioriza latencia mínima (<1ms de red) y encapsula paquetes UDP vía Gnirehtet.
   - **Modo Wi-Fi**: Conexión inalámbrica libre por la red local a través de la IP de la laptop.
 - 🚀 **Ciclo de vida automático y eficiente (udev & systemd)**:
-  - **Al conectar el cable**: udev detecta el visor, levanta los servicios auxiliares (`gnirehtet`, `spatial-hud`, `vr-ttyd`) y abre automáticamente el HUD y Moonlight XR.
+  - **Al conectar el cable**: udev detecta el visor, levanta los servicios auxiliares (`gnirehtet`, `spatial-hud`) y abre automáticamente el HUD y Moonlight XR.
   - **Al desconectar el cable**: udev dispara de inmediato el apagado automático de los servicios (`quest-cleanup.service`), liberando CPU y memoria de la laptop y restaurando el monitor si el modo Ultrawide estaba activo.
 - 🌌 **Spatial HUD (Realidad Mixta / Passthrough)**:
   - Panel web flotante con tema translúcido oscuro (`http://10.0.2.2:9090`):
     1. **Métricas completas de PC**: CPU (uso, frec, temp), GPU Iris Xe (actividad, frec, temp die), RAM, consumo de batería en Watts y tráfico de red en vivo (I/O).
-    2. **Terminal interactiva**: Embebida con `ttyd` (puerto 7681) y barra de teclas táctiles (`Ctrl`, `Alt`, `Esc`, `Tab`, `^C`, `^D`, flechas direccionales).
-    3. **Pomodoro espacial**: Temporizador de enfoque (25m / 5m) con controles táctiles en VR.
-    4. **Notificaciones**: Interceptor en tiempo real de alertas de escritorio vía D-Bus.
+    2. **Pomodoro espacial**: Temporizador de enfoque (25m / 5m) con controles táctiles en VR.
+    3. **Notificaciones**: Interceptor en tiempo real de alertas de escritorio vía D-Bus.
 ---
 
 ## Arquitectura

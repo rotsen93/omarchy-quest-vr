@@ -17,7 +17,7 @@ if [[ -n "$WIFI_IP" ]]; then
 fi
 
 # 2. Stop background VR services on the laptop to save resources
-systemctl --user stop gnirehtet.service spatial-hud.service vr-ttyd.service 2>/dev/null || true
+systemctl --user stop gnirehtet.service spatial-hud.service 2>/dev/null || true
 
 # 3. If ultrawide headless monitor was active, restore normal laptop screen
 if hyprctl monitors 2>/dev/null | grep -q "HEADLESS-1"; then
